@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ticktower.Core/Ticktower.Core.csproj" />
+    <Project Path="src/Ticktower/Ticktower.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ticktower.Tests/Ticktower.Tests.csproj" />
+  </Folder>
+</Solution>
