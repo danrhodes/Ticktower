@@ -1,5 +1,4 @@
-#
-| 2026-10-13 | Build | P1-06, P1-07 | `TimerEngine` and `IAlertSink` in Core. Event logging itself was built in P1-03; P1-07 added lifecycle-order and JSON round-trip tests for all 10 event types, plus engine-written alert-fired events. 62 tests passing, 0 warnings. | Ticktower: Tracker
+# Ticktower: Tracker
 
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
@@ -103,3 +102,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | Build | P1-01 | Scaffolded Ticktower.slnx with Ticktower (WPF), Ticktower.Core, Ticktower.Tests (xUnit). Build 0 warnings. No tests yet. |
 | 2026-10-13 | Build | P1-02, P1-03 | Models and `TimerStateMachine` in Core, 25 tests passing, 0 warnings. Working tree had unrelated changes from outside the session (see notes); left uncommitted. |
 | 2026-10-13 | Build | P1-04, P1-05 | `JsonFileStore` (temp write, atomic replace, `.bad` recovery) and `Migrator` in Core. 45 tests passing, 0 warnings. |
+| 2026-10-13 | Build | P1-06, P1-07 | `TimerEngine` and `IAlertSink` in Core. Event logging itself was built in P1-03; P1-07 added lifecycle-order and JSON round-trip tests for all 10 event types, plus engine-written alert-fired events. 62 tests passing, 0 warnings. |
