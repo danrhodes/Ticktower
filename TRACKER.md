@@ -1,9 +1,10 @@
-# Ticktower: Tracker
+#
+| 2026-10-13 | Build | P1-06, P1-07 | `TimerEngine` and `IAlertSink` in Core. Event logging itself was built in P1-03; P1-07 added lifecycle-order and JSON round-trip tests for all 10 event types, plus engine-written alert-fired events. 62 tests passing, 0 warnings. | Ticktower: Tracker
 
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
 **Current phase:** P1
-**Next task:** P1-06
+**Next task:** P1-08
 **Last updated:** 2026-10-13
 
 ## Status key
@@ -17,8 +18,8 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 - [x] P1-03 State machine with unit tests (countdown, interval, stopwatch, snooze)
 - [x] P1-04 Atomic JSON store: temp write, replace, `.bad` backup, defaults on failure
 - [x] P1-05 Migration framework keyed on `version`
-- [ ] P1-06 Engine: UTC recompute on launch, missed-alert firing, tick loop (UI refresh only)
-- [ ] P1-07 Event log: start, stop, pause, resume, lap, bookmark, snooze, expire, ack, alert-fired
+- [x] P1-06 Engine: UTC recompute on launch, missed-alert firing, tick loop (UI refresh only)
+- [x] P1-07 Event log: start, stop, pause, resume, lap, bookmark, snooze, expire, ack, alert-fired
 - [ ] P1-08 History writer: `history/YYYY-MM.jsonl` on timer close
 - [ ] P1-09 Single-instance mutex, focus running instance
 - [ ] P1-10 Launcher window: floating, always-on-top, button per type
@@ -82,6 +83,7 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | Added `Duration` (TimeSpan) to the timer model: countdown and interval length, needed for interval restart-on-ack. Not in the GUIDE field list; additive, schema version 1. |
 | 2026-10-13 | Expire events are stamped with `EndUtc` (true expiry), not detection time, so sleep/relaunch does not skew the log. Stopwatch elapsed is derived from the event log. |
 | 2026-10-13 | A file with a missing/invalid version, or a version newer than the build supports, is treated like a parse failure: moved to `.bad` and defaults loaded, so nothing is lost or overwritten. Migrated files are persisted on next save, not on load. |
+| 2026-10-13 | Engine takes an `IAlertSink` and an injectable UTC clock, and raises `Changed` for persistence. `Recompute` (launch) and `Tick` share one sweep; alert-fired notes are `missed` or `expired`. Re-alerting an unacknowledged expired timer after relaunch is left to the P2 ladder. |
 | 2026-10-13 | Only .NET SDK 10 installed (runtime 8 present). Projects target net8.0 / net8.0-windows, built with SDK 10. LICENSE and README already existed. |
 
 ## Blockers and open questions
