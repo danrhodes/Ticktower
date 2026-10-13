@@ -3,7 +3,7 @@
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
 **Current phase:** P1
-**Next task:** P1-04
+**Next task:** P1-06
 **Last updated:** 2026-10-13
 
 ## Status key
@@ -15,8 +15,8 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 - [x] P1-01 Repo scaffold: solution, `Ticktower`, `Ticktower.Core`, `Ticktower.Tests`, MIT `LICENSE`, `.gitignore`
 - [x] P1-02 Models: timer, kind, state, event, priority, `version` field, `nextTimerId`
 - [x] P1-03 State machine with unit tests (countdown, interval, stopwatch, snooze)
-- [ ] P1-04 Atomic JSON store: temp write, replace, `.bad` backup, defaults on failure
-- [ ] P1-05 Migration framework keyed on `version`
+- [x] P1-04 Atomic JSON store: temp write, replace, `.bad` backup, defaults on failure
+- [x] P1-05 Migration framework keyed on `version`
 - [ ] P1-06 Engine: UTC recompute on launch, missed-alert firing, tick loop (UI refresh only)
 - [ ] P1-07 Event log: start, stop, pause, resume, lap, bookmark, snooze, expire, ack, alert-fired
 - [ ] P1-08 History writer: `history/YYYY-MM.jsonl` on timer close
@@ -81,6 +81,7 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-10 | Presets per user, JSON import and export. |
 | 2026-10-13 | Added `Duration` (TimeSpan) to the timer model: countdown and interval length, needed for interval restart-on-ack. Not in the GUIDE field list; additive, schema version 1. |
 | 2026-10-13 | Expire events are stamped with `EndUtc` (true expiry), not detection time, so sleep/relaunch does not skew the log. Stopwatch elapsed is derived from the event log. |
+| 2026-10-13 | A file with a missing/invalid version, or a version newer than the build supports, is treated like a parse failure: moved to `.bad` and defaults loaded, so nothing is lost or overwritten. Migrated files are persisted on next save, not on load. |
 | 2026-10-13 | Only .NET SDK 10 installed (runtime 8 present). Projects target net8.0 / net8.0-windows, built with SDK 10. LICENSE and README already existed. |
 
 ## Blockers and open questions
@@ -99,3 +100,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-10 | Planning | n/a | Spec and tracker created. No code. |
 | 2026-10-13 | Build | P1-01 | Scaffolded Ticktower.slnx with Ticktower (WPF), Ticktower.Core, Ticktower.Tests (xUnit). Build 0 warnings. No tests yet. |
 | 2026-10-13 | Build | P1-02, P1-03 | Models and `TimerStateMachine` in Core, 25 tests passing, 0 warnings. Working tree had unrelated changes from outside the session (see notes); left uncommitted. |
+| 2026-10-13 | Build | P1-04, P1-05 | `JsonFileStore` (temp write, atomic replace, `.bad` recovery) and `Migrator` in Core. 45 tests passing, 0 warnings. |
