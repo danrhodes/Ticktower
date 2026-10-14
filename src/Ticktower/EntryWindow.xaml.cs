@@ -43,6 +43,8 @@ public partial class EntryWindow : Window
         Loaded += (_, _) => NameBox.Focus();
     }
 
+    private void OnCancel(object sender, RoutedEventArgs e) => Close();
+
     private void OnOk(object sender, RoutedEventArgs e)
     {
         var priority = (Priority)PriorityBox.SelectedItem;
