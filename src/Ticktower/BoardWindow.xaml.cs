@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 using Ticktower.Core.Engine;
+using Ticktower.Core.Models;
 
 namespace Ticktower;
 
@@ -20,10 +22,22 @@ public partial class BoardWindow : Window
         ExpiredList.ItemsSource = _expired;
         AckList.ItemsSource = _acknowledged;
 
+        ColourModeBox.ItemsSource = Enum.GetValues<ColourMode>();
+        ColourModeBox.SelectedItem = host.Settings.ColourMode;
+        host.CatalogChanged += Sync;
         host.Ticked += Sync;
         host.Engine.Changed += Sync;
         Sync();
     }
+
+    private void OnColourModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ColourModeBox.SelectedItem is not ColourMode mode || mode == _host.Settings.ColourMode) return;
+        _host.Settings.ColourMode = mode;
+        _host.SaveSettings();   // raises CatalogChanged, which re-syncs the cards
+    }
+
+    private void OnAlwaysOnTop(object sender, RoutedEventArgs e) => Topmost = AlwaysOnTop.IsChecked == true;
 
     private void Sync()
     {

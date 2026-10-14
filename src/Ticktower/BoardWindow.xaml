@@ -12,7 +12,9 @@
         <DataTemplate x:Key="CardTemplate">
             <Border Margin="0,0,0,8" Padding="10" CornerRadius="4" Background="White"
                     BorderBrush="#D0D5DA" BorderThickness="1">
-                <StackPanel>
+                <DockPanel>
+                  <Border DockPanel.Dock="Left" Width="6" CornerRadius="3" Margin="-4,-4,8,-4" Background="{Binding AccentBrush}" />
+                  <StackPanel>
                     <DockPanel>
                         <Border DockPanel.Dock="Right" Background="{Binding PriorityBrush}" CornerRadius="3" Padding="6,1" Margin="6,0,0,0">
                             <TextBlock Text="{Binding PriorityText}" Foreground="White" FontWeight="Bold" />
@@ -28,12 +30,13 @@
                         <Button Style="{StaticResource CardButton}" Content="Lap" Command="{Binding LapCommand}" Visibility="{Binding CanLap, Converter={StaticResource BoolVis}}" />
                         <Button Style="{StaticResource CardButton}" Content="Stop" Command="{Binding StopCommand}" Visibility="{Binding CanStop, Converter={StaticResource BoolVis}}" />
                         <Button Style="{StaticResource CardButton}" Content="Acknowledge" Command="{Binding AcknowledgeCommand}" Visibility="{Binding CanAcknowledge, Converter={StaticResource BoolVis}}" />
-                        <Button Style="{StaticResource CardButton}" Content="Snooze 5m" Command="{Binding SnoozeCommand}" Visibility="{Binding CanSnooze, Converter={StaticResource BoolVis}}" />
+                        <Button Style="{StaticResource CardButton}" Content="Snooze…" Command="{Binding SnoozeCommand}" Visibility="{Binding CanSnooze, Converter={StaticResource BoolVis}}" />
                         <Button Style="{StaticResource CardButton}" Content="Bookmark" Command="{Binding BookmarkCommand}" />
                         <Button Style="{StaticResource CardButton}" Content="Edit" Command="{Binding EditCommand}" />
                         <Button Style="{StaticResource CardButton}" Content="Delete" Command="{Binding DeleteCommand}" />
                     </WrapPanel>
-                </StackPanel>
+                  </StackPanel>
+                </DockPanel>
             </Border>
         </DataTemplate>
         <Style TargetType="TextBlock" x:Key="LaneHeader">
@@ -42,7 +45,13 @@
             <Setter Property="Margin" Value="4,0,0,8" />
         </Style>
     </Window.Resources>
-    <Grid Margin="10">
+    <DockPanel Margin="10">
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+        <TextBlock Text="Colour by" VerticalAlignment="Center" Margin="0,0,6,0" />
+        <ComboBox x:Name="ColourModeBox" Width="110" SelectionChanged="OnColourModeChanged" />
+        <CheckBox x:Name="AlwaysOnTop" Content="Always on top" Margin="16,0,0,0" VerticalAlignment="Center" Click="OnAlwaysOnTop" />
+    </StackPanel>
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
@@ -68,4 +77,5 @@
             </ScrollViewer>
         </DockPanel>
     </Grid>
+    </DockPanel>
 </Window>

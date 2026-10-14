@@ -6,9 +6,9 @@ namespace Ticktower;
 /// <summary>Minimal modal text prompt. Returns null on cancel.</summary>
 public static class PromptWindow
 {
-    public static string? Ask(string title, string label)
+    public static string? Ask(string title, string label, string initial = "")
     {
-        var box = new TextBox { MinWidth = 280, Margin = new Thickness(0, 6, 0, 10) };
+        var box = new TextBox { MinWidth = 280, Margin = new Thickness(0, 6, 0, 10), Text = initial };
         var ok = new Button { Content = "OK", IsDefault = true, Width = 70, Margin = new Thickness(0, 0, 6, 0) };
         var cancel = new Button { Content = "Cancel", IsCancel = true, Width = 70 };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
@@ -26,7 +26,11 @@ public static class PromptWindow
             Topmost = true,
         };
         ok.Click += (_, _) => window.DialogResult = true;
-        window.Loaded += (_, _) => box.Focus();
+        window.Loaded += (_, _) =>
+        {
+            box.Focus();
+            box.SelectAll();
+        };
         return window.ShowDialog() == true ? box.Text : null;
     }
 }

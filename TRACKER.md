@@ -2,8 +2,8 @@
 
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
-**Current phase:** P1
-**Next task:** P1 exit test (manual)
+**Current phase:** P2
+**Next task:** P1 exit test (manual), then P2-03 / P2-07 manual checks, then P3-01
 **Last updated:** 2026-10-14
 
 ## Status key
@@ -33,20 +33,20 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 
 ## P2: Alerts and customisation
 
-- [ ] P2-01 Alert profile model and `alertprofiles.json`
-- [ ] P2-02 Escalation ladder engine: repeat interval, intensity per missed repeat
-- [ ] P2-03 Channels: taskbar flash, full-screen overlay, TTS
-- [ ] P2-04 Alert profile editor UI
-- [ ] P2-05 Per-timer alert override
-- [ ] P2-06 Snooze presets and custom duration
-- [ ] P2-07 AUMID registration on first run, clean-profile test
-- [ ] P2-08 Ad hoc type creation, save to `types.json`
-- [ ] P2-09 Global hotkeys via `RegisterHotKey`, duplicate rejection, UI failure messages
-- [ ] P2-10 Presets: save, load, import, export JSON
-- [ ] P2-11 Chain execution (`nextTimerId`)
-- [ ] P2-12 Board colour modes: urgency, priority, type, client
-- [ ] P2-13 Palette editor, save to `palettes.json`
-- [ ] P2-14 Import and export for types, alert profiles, palettes
+- [x] P2-01 Alert profile model and `alertprofiles.json`
+- [x] P2-02 Escalation ladder engine: repeat interval, intensity per missed repeat
+- [~] P2-03 Channels: taskbar flash, full-screen overlay, TTS
+- [x] P2-04 Alert profile editor UI
+- [x] P2-05 Per-timer alert override
+- [x] P2-06 Snooze presets and custom duration
+- [~] P2-07 AUMID registration on first run, clean-profile test
+- [x] P2-08 Ad hoc type creation, save to `types.json`
+- [x] P2-09 Global hotkeys via `RegisterHotKey`, duplicate rejection, UI failure messages
+- [x] P2-10 Presets: save, load, import, export JSON
+- [x] P2-11 Chain execution (`nextTimerId`)
+- [x] P2-12 Board colour modes: urgency, priority, type, client
+- [x] P2-13 Palette editor, save to `palettes.json`
+- [x] P2-14 Import and export for types, alert profiles, palettes
 
 ## P3: Export and polish
 
@@ -92,6 +92,18 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-14 | P1 snooze is a fixed 5 min button and toast action. Presets and custom durations stay in P2-06. Launcher right-click type edit is deferred to P2-08. Tray "settings" item omitted until a settings window exists. |
 | 2026-10-14 | P1 alerts: toast (Microsoft.Toolkit.Uwp.Notifications, buttons Acknowledge and Snooze) plus system sound; failures are swallowed. App targets net8.0-windows10.0.17763.0 and enables WinForms for `NotifyIcon` only. AUMID registration stays P2-07. |
 | 2026-10-14 | Added `TICKTOWER_DATA` env var to override the data folder, for sandboxed runs and tests. |
+| 2026-10-14 | User started P2 with the P1 exit test still unrun (it is manual). Proceeded; the test stays open. |
+| 2026-10-14 | `state.json` bumped to version 2 (migration `StateV1ToV2`): adds `alertOverride` and the `Pending` state. History records keep their own version 1; the timer inside is read tolerantly. |
+| 2026-10-14 | Ladder: `IAlertSink.Alert(AlertNotice)` replaces `Expired`. A rung's `RepeatInterval` is the wait before the next rung; past the last rung it repeats. Rung due-ness is derived from alert-fired events since the latest expiry, so it survives relaunch and a snooze restarts the ladder. Relaunch continues at the next rung (one alert per sweep, no catch-up burst). Repeat floor 1 s. Alert-fired notes: `expired`, `missed`, `repeat N`. This settles the P1 note about re-alerting after relaunch. |
+| 2026-10-14 | Built-in profiles: Default (the guide's ladder, 60 s per rung) and Urgent. Per-timer `AlertOverride` layers any of ladder, sound file, volume, speech text over the profile. |
+| 2026-10-14 | Chain: the successor is created `Pending` (new state, shown in Active as "Queued") by `AddChain` and referenced by `NextTimerId`. It starts when the predecessor is acknowledged (countdown, interval) or stopped (stopwatch). The entry window's "Then start" picks a type for it. |
+| 2026-10-14 | `settings.json` v1 holds snooze presets (minutes), board colour mode and palette id. Window positions and board mode memory arrive in P3-08. |
+| 2026-10-14 | Colour modes: urgency is green until 50% left, blends to amber at 25%, red at 0%; expired is red; acknowledged is grey; stopwatch and queued are neutral. Client colour is an FNV-1a hash of the lower-cased client name, so it is stable across runs. Palettes: Default and High contrast built in. |
+| 2026-10-14 | Hotkeys: need at least one modifier; keys A-Z, 0-9, F1-F24. Duplicates rejected inside Ticktower before Windows is asked; Windows refusals are shown as the Win32 message. Type hotkey starts a new timer (a stopwatch type toggles its live stopwatch). Timer hotkey starts a queued timer or toggles a stopwatch. The type's hotkey is not copied onto timers made from it. |
+| 2026-10-14 | Import/export: one envelope (`version`, `kind`, `items`) for types, alert profiles, presets and palettes. Only custom items export. Import never overwrites built-ins (a clash becomes a copy), never marks items built-in, and strips hotkeys from imported types and presets to avoid silent clashes. A bad import file is never moved to `.bad`. |
+| 2026-10-14 | AUMID `Ticktower.App` is set on the process and its HKCU key created on every start (idempotent); the toast library adopts it (verified: its activator was written under that key). |
+| 2026-10-14 | Overlay covers the primary screen only. Taskbar flash shows a hidden board (without focus) so there is a button to flash. TTS uses System.Speech (NuGet 8.0.0). The Windows default alert sound ignores profile volume; volume applies to sound files and speech. |
+| 2026-10-14 | Entry window gained a Length field (needed for presets such as "15 min interval" and ad hoc lengths), Alerts, Hotkey and Then-start rows. Board gained an always-on-top tick (the guide lists it as optional). A Settings window (tray, launcher) hosts types, profiles, presets, palettes and snooze presets. |
 
 ## Blockers and open questions
 
@@ -113,3 +125,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | Build | P1-06, P1-07 | `TimerEngine` and `IAlertSink` in Core. Event logging itself was built in P1-03; P1-07 added lifecycle-order and JSON round-trip tests for all 10 event types, plus engine-written alert-fired events. 62 tests passing, 0 warnings. |
 | 2026-10-14 | Build | P1-08 | `HistoryWriter`, `HistoryRecord`, `TimerEngine.Closed`. 68 tests passing, 0 warnings. Pre-existing uncommitted changes (Tests csproj package versions, `TicktowerCoreTests.cs`) left untouched. |
 | 2026-10-14 | Build | P1-09 to P1-16 | Core: `SingleInstance`, `TimerType`/`BuiltInTypes`, `BoardLogic`, `AppPaths`, `TimerEngine.Edit`. App: `AppHost`, `AlertService`, launcher, entry window, board, tray. 81 tests passing, 0 warnings. Smoke run: relaunch recomputes an expired timer with a `missed` alert, second launch exits. **Not verified:** UI appearance, toast delivery, locked-screen alerts, sleep/wake. See P1 exit test. |
+| 2026-10-14 | Build | P2-01 to P2-14 | Core: alert profiles, ladder, override, chain/Pending, colours, palettes, hotkeys, catalog import/export, presets, settings, state v2 migration. App: channels (toast, sound, flash, overlay, TTS), editors, settings window, hotkey service, AUMID. 145 tests passing, 0 warnings. Smoke runs: ladder repeated every 2 s with `repeat N` notes; a real global hotkey created a timer; AUMID key written with toast activator. **Not verified:** how the new windows look, audible sound/TTS, overlay appearance and locked screen, toast on a clean profile. |

@@ -27,6 +27,9 @@ public partial class App : Application
         }
         _single.Listen(() => Dispatcher.BeginInvoke(ShowLauncher));
 
+        // The AUMID must be set before the first toast so notifications carry the Ticktower identity.
+        NativeMethods.RegisterAumid();
+
         _host = new AppHost();
         _host.Start();
 
@@ -35,6 +38,7 @@ public partial class App : Application
         KeepAliveInTray(_launcher);
         KeepAliveInTray(_board);
         BuildTray();
+        _host.Alerts.FlashTaskbar = FlashBoard;
 
         ShowLauncher();
         if (_host.Engine.Timers.Count > 0) ShowBoard();
@@ -51,6 +55,32 @@ public partial class App : Application
     private void ShowLauncher() => Present(_launcher);
 
     private void ShowBoard() => Present(_board);
+
+    private LibraryWindow? _settings;
+
+    public void ShowSettings()
+    {
+        if (_settings is { IsLoaded: true })
+        {
+            _settings.Activate();
+            return;
+        }
+        _settings = new LibraryWindow(_host!);
+        _settings.Show();
+    }
+
+    /// <summary>Flashes the board's taskbar button. A hidden board is shown without taking focus so it has a button to flash.</summary>
+    private void FlashBoard()
+    {
+        if (_board is null) return;
+        if (!_board.IsVisible)
+        {
+            _board.ShowActivated = false;
+            _board.Show();
+            _board.ShowActivated = true;
+        }
+        AlertService.Flash(_board);
+    }
 
     private void NewTimer() => new EntryWindow(_host!).Show();
 
@@ -86,6 +116,7 @@ public partial class App : Application
         var mute = new System.Windows.Forms.ToolStripMenuItem("Mute all") { CheckOnClick = true };
         mute.CheckedChanged += (_, _) => _host!.Alerts.Muted = mute.Checked;
         menu.Items.Add(mute);
+        menu.Items.Add("Settings", null, (_, _) => ShowSettings());
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) =>
         {

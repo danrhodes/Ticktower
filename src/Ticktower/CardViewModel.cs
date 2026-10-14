@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Ticktower.Core.Engine;
@@ -19,12 +21,16 @@ public sealed class CardViewModel : INotifyPropertyChanged
         _host = host;
         _info = BoardLogic.Card(timer, DateTime.UtcNow);
 
-        StartCommand = new RelayCommand(() => AppHost.Safe(() => host.Engine.Resume(timer.Id)));
+        StartCommand = new RelayCommand(() => AppHost.Safe(() =>
+        {
+            if (timer.State == TimerState.Pending) host.Engine.Start(timer.Id);
+            else host.Engine.Resume(timer.Id);
+        }));
         PauseCommand = new RelayCommand(() => AppHost.Safe(() => host.Engine.Pause(timer.Id)));
         StopCommand = new RelayCommand(() => AppHost.Safe(() => host.Engine.Stop(timer.Id)));
         LapCommand = new RelayCommand(() => AppHost.Safe(() => host.Engine.Lap(timer.Id)));
         BookmarkCommand = new RelayCommand(Bookmark);
-        SnoozeCommand = new RelayCommand(() => AppHost.Safe(() => host.Engine.Snooze(timer.Id, AlertService.SnoozeLength)));
+        SnoozeCommand = new RelayCommand(ShowSnoozeMenu);
         AcknowledgeCommand = new RelayCommand(() => AppHost.Safe(() => host.Engine.Acknowledge(timer.Id)));
         EditCommand = new RelayCommand(() => new EntryWindow(host, editing: timer).Show());
         DeleteCommand = new RelayCommand(Delete);
@@ -49,6 +55,9 @@ public sealed class CardViewModel : INotifyPropertyChanged
     public string PriorityText => Timer.Priority.ToString();
     public string TimeText => _info.TimeText;
 
+    /// <summary>Card accent, from the board's colour mode and palette.</summary>
+    public Brush AccentBrush { get; private set; } = Brushes.Gray;
+
     public Brush PriorityBrush => Timer.Priority switch
     {
         Priority.P1 => Frozen("#C62828"),
@@ -70,7 +79,7 @@ public sealed class CardViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool CanStart => Timer.Kind == TimerKind.Stopwatch && Timer.State == TimerState.Paused;
+    public bool CanStart => Timer.State == TimerState.Pending || (Timer.Kind == TimerKind.Stopwatch && Timer.State == TimerState.Paused);
     public bool CanPause => Timer.Kind == TimerKind.Stopwatch && Timer.State == TimerState.Running;
     public bool CanStop => Timer.Kind == TimerKind.Stopwatch && Timer.State is TimerState.Running or TimerState.Paused;
     public bool CanLap => CanPause;
@@ -80,7 +89,38 @@ public sealed class CardViewModel : INotifyPropertyChanged
     public void Refresh(DateTime nowUtc)
     {
         _info = BoardLogic.Card(Timer, nowUtc);
+        AccentBrush = BrushUtil.FromHex(
+            BoardColours.For(Timer, _host.Settings.ColourMode, nowUtc, _host.Palette, _host.Types), Brushes.Gray);
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+    }
+
+    /// <summary>Snooze presets from settings plus a custom length.</summary>
+    private void ShowSnoozeMenu()
+    {
+        var menu = new ContextMenu { Placement = PlacementMode.MousePoint };
+        foreach (var minutes in _host.Settings.SnoozeMinutes)
+        {
+            var length = TimeSpan.FromMinutes(minutes);
+            var item = new MenuItem { Header = $"Snooze {SnoozeParser.Format(length)}" };
+            item.Click += (_, _) => AppHost.Safe(() => _host.Engine.Snooze(Timer.Id, length));
+            menu.Items.Add(item);
+        }
+        var custom = new MenuItem { Header = "Custom…" };
+        custom.Click += (_, _) => SnoozeCustom();
+        menu.Items.Add(custom);
+        menu.IsOpen = true;
+    }
+
+    private void SnoozeCustom()
+    {
+        var text = PromptWindow.Ask("Snooze", $"Snooze {Timer.Name} for (for example 7, 90s, 1h30m):", "10");
+        if (text is null) return;
+        if (!SnoozeParser.TryParse(text, out var length))
+        {
+            FormBuilder.Error("Use a length like 7, 90s or 1h30m (1 second to 24 hours).");
+            return;
+        }
+        AppHost.Safe(() => _host.Engine.Snooze(Timer.Id, length));
     }
 
     private void Bookmark()
