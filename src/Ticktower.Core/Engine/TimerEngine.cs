@@ -48,11 +48,17 @@ public sealed class TimerEngine
         return timer;
     }
 
+    /// <summary>Raised when a timer leaves the live set, with the close time. Wire the history writer here.</summary>
+    public event Action<TimerItem, DateTime>? Closed;
+
     public bool Remove(Guid id)
     {
-        var removed = _timers.RemoveAll(t => t.Id == id) > 0;
-        if (removed) Changed?.Invoke();
-        return removed;
+        var timer = _timers.FirstOrDefault(t => t.Id == id);
+        if (timer is null) return false;
+        _timers.Remove(timer);
+        Closed?.Invoke(timer, Now());
+        Changed?.Invoke();
+        return true;
     }
 
     /// <summary>Launch-time pass: expires everything already due and fires those alerts immediately.</summary>

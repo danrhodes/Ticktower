@@ -3,8 +3,8 @@
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
 **Current phase:** P1
-**Next task:** P1-08
-**Last updated:** 2026-10-13
+**Next task:** P1-09
+**Last updated:** 2026-10-14
 
 ## Status key
 
@@ -19,7 +19,7 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 - [x] P1-05 Migration framework keyed on `version`
 - [x] P1-06 Engine: UTC recompute on launch, missed-alert firing, tick loop (UI refresh only)
 - [x] P1-07 Event log: start, stop, pause, resume, lap, bookmark, snooze, expire, ack, alert-fired
-- [ ] P1-08 History writer: `history/YYYY-MM.jsonl` on timer close
+- [x] P1-08 History writer: `history/YYYY-MM.jsonl` on timer close
 - [ ] P1-09 Single-instance mutex, focus running instance
 - [ ] P1-10 Launcher window: floating, always-on-top, button per type
 - [ ] P1-11 Entry window: name, ticket, client, priority, type, notes
@@ -84,6 +84,7 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | A file with a missing/invalid version, or a version newer than the build supports, is treated like a parse failure: moved to `.bad` and defaults loaded, so nothing is lost or overwritten. Migrated files are persisted on next save, not on load. |
 | 2026-10-13 | Engine takes an `IAlertSink` and an injectable UTC clock, and raises `Changed` for persistence. `Recompute` (launch) and `Tick` share one sweep; alert-fired notes are `missed` or `expired`. Re-alerting an unacknowledged expired timer after relaunch is left to the P2 ladder. |
 | 2026-10-13 | Only .NET SDK 10 installed (runtime 8 present). Projects target net8.0 / net8.0-windows, built with SDK 10. LICENSE and README already existed. |
+| 2026-10-14 | "Closed" means removed from the live set (`TimerEngine.Remove`), which raises `Closed(timer, utc)`. `HistoryWriter` appends a versioned `HistoryRecord` line to `history/YYYY-MM.jsonl`, filed by the UTC close month. Wiring Closed to the writer happens at app startup (UI tasks). Corrupt lines are skipped on read. |
 
 ## Blockers and open questions
 
@@ -103,3 +104,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | Build | P1-02, P1-03 | Models and `TimerStateMachine` in Core, 25 tests passing, 0 warnings. Working tree had unrelated changes from outside the session (see notes); left uncommitted. |
 | 2026-10-13 | Build | P1-04, P1-05 | `JsonFileStore` (temp write, atomic replace, `.bad` recovery) and `Migrator` in Core. 45 tests passing, 0 warnings. |
 | 2026-10-13 | Build | P1-06, P1-07 | `TimerEngine` and `IAlertSink` in Core. Event logging itself was built in P1-03; P1-07 added lifecycle-order and JSON round-trip tests for all 10 event types, plus engine-written alert-fired events. 62 tests passing, 0 warnings. |
+| 2026-10-14 | Build | P1-08 | `HistoryWriter`, `HistoryRecord`, `TimerEngine.Closed`. 68 tests passing, 0 warnings. Pre-existing uncommitted changes (Tests csproj package versions, `TicktowerCoreTests.cs`) left untouched. |
