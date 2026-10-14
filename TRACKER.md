@@ -2,8 +2,8 @@
 
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
-**Current phase:** P2
-**Next task:** P1 exit test (manual), then P2-03 / P2-07 manual checks, then P3-01
+**Current phase:** P3
+**Next task:** manual checks (P1 exit test, P2-03, P2-07, P3-09 first tag), then P4-01
 **Last updated:** 2026-10-14
 
 ## Status key
@@ -50,16 +50,16 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 
 ## P3: Export and polish
 
-- [ ] P3-01 Export profile model and `exportprofiles.json`
-- [ ] P3-02 CSV writer: delimiter, quoting, encoding, row mode
-- [ ] P3-03 Column mapping: source field, header, order, enabled, format
-- [ ] P3-04 Duration and date formats
-- [ ] P3-05 Built-in profiles: Generic, PSA-ready
-- [ ] P3-06 Export UI: date range, profile picker, profile editor
-- [ ] P3-07 Profile import and export JSON
-- [ ] P3-08 Window position and size memory per monitor
-- [ ] P3-09 GitHub Actions release build on tag
-- [ ] P3-10 README: install, usage, screenshots
+- [x] P3-01 Export profile model and `exportprofiles.json`
+- [x] P3-02 CSV writer: delimiter, quoting, encoding, row mode
+- [x] P3-03 Column mapping: source field, header, order, enabled, format
+- [x] P3-04 Duration and date formats
+- [x] P3-05 Built-in profiles: Generic, PSA-ready
+- [x] P3-06 Export UI: date range, profile picker, profile editor
+- [x] P3-07 Profile import and export JSON
+- [x] P3-08 Window position and size memory per monitor
+- [~] P3-09 GitHub Actions release build on tag
+- [x] P3-10 README: install, usage, screenshots
 
 ## P4: Later
 
@@ -104,6 +104,13 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-14 | AUMID `Ticktower.App` is set on the process and its HKCU key created on every start (idempotent); the toast library adopts it (verified: its activator was written under that key). |
 | 2026-10-14 | Overlay covers the primary screen only. Taskbar flash shows a hidden board (without focus) so there is a button to flash. TTS uses System.Speech (NuGet 8.0.0). The Windows default alert sound ignores profile volume; volume applies to sound files and speech. |
 | 2026-10-14 | Entry window gained a Length field (needed for presets such as "15 min interval" and ad hoc lengths), Alerts, Hotkey and Then-start rows. Board gained an always-on-top tick (the guide lists it as optional). A Settings window (tray, launcher) hosts types, profiles, presets, palettes and snooze presets. |
+| 2026-10-14 | Export profile columns are ordered by their position in the list (the guide's per-column "order"). Each column has source, header, enabled and an optional format. Row modes: per timer, per event. Extra sources beyond the guide's list: lap times, bookmark details, and per-event type, time and note, so laps and bookmarks can export in their own columns or rows. |
+| 2026-10-14 | Export semantics: only closed timers (deleted from the board) are in history, so only they export. Range is by close time, local calendar days inclusive. End time is the stop (stopwatch) or last acknowledge (countdown, interval), else the close time. Duration is stopwatch running time excluding pauses, or start to end. Dates are UTC, matching the guide's "start UTC / end UTC". |
+| 2026-10-14 | CSV safety: free text starting with = + - @ gets a leading apostrophe by default (profile option `ProtectFormulas`). Non-numeric quoting always quotes typed text, even if it looks numeric (ticket numbers). Files are written to a temp file then moved. |
+| 2026-10-14 | Built-in export profiles: Generic (all fields) and PSA-ready (placeholder layout, semicolon-free comma CSV, decimal hours, `yyyy-MM-dd HH:mm`). Remap once the PSA format is known (GUIDE section 16). |
+| 2026-10-14 | `settings.json` bumped to version 2 (migration `SettingsV1ToV2`): per-window, per-monitor placement memory and board always-on-top. A window reopens on the monitor it was last on; if that monitor is gone it uses the primary's saved spot; the spot is clamped fully on-screen. Saved in WPF device-independent units on a 1 s debounce and when a window hides. Launcher restores position only (it sizes to content). |
+| 2026-10-14 | Release workflow tests and publishes `-r win-x64 --self-contained false -p:PublishSingleFile=true` (needs the .NET 8 Desktop Runtime, per the guide's command), builds named projects not the `.slnx` (SDK 8 cannot open it), and attaches the exe with `gh release create`. Unrun until the first `v*` tag is pushed. |
+| 2026-10-14 | Separate `TICKTOWER_DATA` folders get their own single-instance name, so a sandbox can run beside the real app. Type and palette colour swatches open the Windows colour dialog. |
 
 ## Blockers and open questions
 
@@ -126,3 +133,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-14 | Build | P1-08 | `HistoryWriter`, `HistoryRecord`, `TimerEngine.Closed`. 68 tests passing, 0 warnings. Pre-existing uncommitted changes (Tests csproj package versions, `TicktowerCoreTests.cs`) left untouched. |
 | 2026-10-14 | Build | P1-09 to P1-16 | Core: `SingleInstance`, `TimerType`/`BuiltInTypes`, `BoardLogic`, `AppPaths`, `TimerEngine.Edit`. App: `AppHost`, `AlertService`, launcher, entry window, board, tray. 81 tests passing, 0 warnings. Smoke run: relaunch recomputes an expired timer with a `missed` alert, second launch exits. **Not verified:** UI appearance, toast delivery, locked-screen alerts, sleep/wake. See P1 exit test. |
 | 2026-10-14 | Build | P2-01 to P2-14 | Core: alert profiles, ladder, override, chain/Pending, colours, palettes, hotkeys, catalog import/export, presets, settings, state v2 migration. App: channels (toast, sound, flash, overlay, TTS), editors, settings window, hotkey service, AUMID. 145 tests passing, 0 warnings. Smoke runs: ladder repeated every 2 s with `repeat N` notes; a real global hotkey created a timer; AUMID key written with toast activator. **Not verified:** how the new windows look, audible sound/TTS, overlay appearance and locked screen, toast on a clean profile. |
+| 2026-10-14 | Build | P3-01 to P3-10 | Core: export profiles, `CsvExporter`, `HistoryWriter.ReadRange`, window memory, settings v2. App: export window, profile editor (Settings tab, import/export), `WindowPlacer`, tray and launcher export entries. Workflow `release.yml` and README with screenshots. 180 tests passing, 0 warnings. Verified by running: all windows render (screenshots in `docs/screenshots`), board position and size restore after relaunch, single-file publish starts. **Not verified:** a second monitor, the release workflow itself (needs a tag), opening an exported CSV in Excel/PSA. |

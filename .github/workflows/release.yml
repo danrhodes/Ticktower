@@ -1,0 +1,41 @@
+name: Release
+
+# Push a tag such as v0.2.0 to build, test and publish a GitHub release.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Projects are named explicitly: the .slnx solution format needs a newer SDK than 8.
+      - name: Test
+        run: dotnet test tests/Ticktower.Tests -c Release
+
+      - name: Publish single-file exe
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          dotnet publish src/Ticktower -c Release -r win-x64 --self-contained false `
+            -p:PublishSingleFile=true -p:Version=$version -o publish
+          Move-Item publish/Ticktower.exe "publish/Ticktower-${{ github.ref_name }}-win-x64.exe"
+
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            "publish/Ticktower-${{ github.ref_name }}-win-x64.exe" `
+            --title "Ticktower ${{ github.ref_name }}" --generate-notes
