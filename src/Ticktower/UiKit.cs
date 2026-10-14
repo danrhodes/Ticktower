@@ -119,3 +119,21 @@ public static class BrushUtil
         return b;
     }
 }
+
+public static class ColourPicker
+{
+    /// <summary>Makes the swatch open the Windows colour dialog; the chosen colour is written to the box as hex.</summary>
+    public static void Attach(Border swatch, TextBox box)
+    {
+        swatch.Cursor = Cursors.Hand;
+        swatch.ToolTip = "Click to choose a colour";
+        swatch.MouseLeftButtonUp += (_, _) =>
+        {
+            using var dialog = new System.Windows.Forms.ColorDialog { FullOpen = true, AnyColor = true };
+            if (Core.Models.ColourUtil.TryParseHex(box.Text, out var c))
+                dialog.Color = System.Drawing.Color.FromArgb(c.R, c.G, c.B);
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            box.Text = Core.Models.ColourUtil.ToHex(dialog.Color.R, dialog.Color.G, dialog.Color.B);
+        };
+    }
+}

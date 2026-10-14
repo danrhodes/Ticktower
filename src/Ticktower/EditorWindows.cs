@@ -59,6 +59,7 @@ public sealed class TypeEditWindow : EditorWindow
         _length.IsEnabled = _type.Kind != TimerKind.Stopwatch;
         _colour.TextChanged += (_, _) => _swatch.Background = BrushUtil.FromHex(_colour.Text, Brushes.Transparent);
         _swatch.Background = BrushUtil.FromHex(_type.Colour, Brushes.Transparent);
+        ColourPicker.Attach(_swatch, _colour);
 
         var colourRow = new DockPanel();
         DockPanel.SetDock(_swatch, Dock.Right);
@@ -239,6 +240,7 @@ public sealed class PaletteWindow : EditorWindow
     {
         var swatch = new Border { Width = 22, Height = 22, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1), Margin = new Thickness(6, 0, 0, 0), Background = BrushUtil.FromHex(box.Text, Brushes.Transparent) };
         box.TextChanged += (_, _) => swatch.Background = BrushUtil.FromHex(box.Text, Brushes.Transparent);
+        ColourPicker.Attach(swatch, box);
         return swatch;
     }
 
