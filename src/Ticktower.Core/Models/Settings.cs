@@ -4,15 +4,19 @@ namespace Ticktower.Core.Models;
 
 public enum ColourMode { Urgency, Priority, Type, Client }
 
-/// <summary>Root of <c>settings.json</c>. Window positions and hotkey options join it in P3.</summary>
+/// <summary>Root of <c>settings.json</c>.</summary>
 public sealed class SettingsFile
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     public int Version { get; set; } = CurrentVersion;
     public List<int> SnoozeMinutes { get; set; } = new() { 5, 10, 15, 30 };
     public ColourMode ColourMode { get; set; } = ColourMode.Urgency;
     public string? PaletteId { get; set; }
+    public bool BoardAlwaysOnTop { get; set; }
+
+    /// <summary>Remembered position and size per window id, per monitor.</summary>
+    public Dictionary<string, WindowMemory> Windows { get; set; } = new();
 
     /// <summary>The first preset, used by one-click snooze (toast and overlay buttons).</summary>
     public TimeSpan QuickSnooze => TimeSpan.FromMinutes(SnoozeMinutes.FirstOrDefault(m => m > 0, 5));

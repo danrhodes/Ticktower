@@ -18,3 +18,16 @@ public static class StateMigrations
 {
     public static Migrator Create() => new(StateFile.CurrentVersion, new IMigration[] { new StateV1ToV2() });
 }
+
+/// <summary>settings.json v1 to v2: adds remembered window placements and the board always-on-top choice (both optional).</summary>
+public sealed class SettingsV1ToV2 : IMigration
+{
+    public int FromVersion => 1;
+
+    public void Apply(JsonObject root) { }
+}
+
+public static class SettingsMigrations
+{
+    public static Migrator Create() => new(SettingsFile.CurrentVersion, new IMigration[] { new SettingsV1ToV2() });
+}

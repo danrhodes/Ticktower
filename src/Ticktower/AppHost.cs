@@ -30,6 +30,7 @@ public sealed class AppHost
     public List<AlertProfile> Profiles { get; private set; } = BuiltInAlertProfiles.Create();
     public List<ColourPalette> Palettes { get; private set; } = BuiltInPalettes.Create();
     public List<Preset> Presets { get; private set; } = new();
+    public List<ExportProfile> ExportProfiles { get; private set; } = BuiltInExportProfiles.Create();
     public SettingsFile Settings { get; private set; } = new();
 
     public ColourPalette Palette =>
@@ -47,7 +48,8 @@ public sealed class AppHost
         Profiles = Load(Paths.AlertProfiles, () => new AlertProfilesFile(), AlertProfilesFile.CurrentVersion).Profiles;
         Palettes = Load(Paths.Palettes, () => new PalettesFile(), PalettesFile.CurrentVersion).Palettes;
         Presets = Load(Paths.Presets, () => new PresetsFile(), PresetsFile.CurrentVersion).Presets;
-        Settings = Load(Paths.Settings, () => new SettingsFile(), SettingsFile.CurrentVersion);
+        ExportProfiles = Load(Paths.ExportProfiles, () => new ExportProfilesFile(), ExportProfilesFile.CurrentVersion).Profiles;
+        Settings = _store.Load(Paths.Settings, () => new SettingsFile(), SettingsMigrations.Create()).Value;
         var state = _store.Load(Paths.State, () => new StateFile(), StateMigrations.Create()).Value;
         Engine.Load(state.Timers);
 
@@ -87,7 +89,14 @@ public sealed class AppHost
     public void SaveProfiles() => Save(Paths.AlertProfiles, new AlertProfilesFile { Profiles = Profiles });
     public void SavePalettes() => Save(Paths.Palettes, new PalettesFile { Palettes = Palettes });
     public void SavePresets() => Save(Paths.Presets, new PresetsFile { Presets = Presets });
+    public void SaveExportProfiles() => Save(Paths.ExportProfiles, new ExportProfilesFile { Profiles = ExportProfiles });
     public void SaveSettings() => Save(Paths.Settings, Settings);
+
+    /// <summary>Writes settings without announcing a catalog change. For frequent, invisible updates such as window positions.</summary>
+    public void PersistSettings() => _store.Save(Paths.Settings, Settings);
+
+    /// <summary>Type id to display name, for exports.</summary>
+    public Dictionary<string, string> TypeNames => Types.ToDictionary(t => t.Id, t => t.Name);
 
     private void Save<T>(string path, T value)
     {

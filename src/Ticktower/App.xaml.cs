@@ -18,7 +18,11 @@ public partial class App : Application
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-        _single = new SingleInstance("Ticktower.App");
+        // A TICKTOWER_DATA override is a separate sandbox, so it gets its own instance name and can run beside the real app.
+        var dataOverride = Environment.GetEnvironmentVariable("TICKTOWER_DATA");
+        _single = new SingleInstance(string.IsNullOrWhiteSpace(dataOverride)
+            ? "Ticktower.App"
+            : $"Ticktower.App.{Core.Models.BoardColours.StableHash(dataOverride.ToLowerInvariant()):X8}");
         if (!_single.IsPrimary)
         {
             _single.SignalExisting();
@@ -35,6 +39,9 @@ public partial class App : Application
 
         _launcher = new LauncherWindow(_host);
         _board = new BoardWindow(_host);
+        _board.Topmost = _host.Settings.BoardAlwaysOnTop;
+        WindowPlacer.Attach(_launcher, "launcher", _host, restoreSize: false);
+        WindowPlacer.Attach(_board, "board", _host, restoreSize: true);
         KeepAliveInTray(_launcher);
         KeepAliveInTray(_board);
         BuildTray();
@@ -57,6 +64,18 @@ public partial class App : Application
     private void ShowBoard() => Present(_board);
 
     private LibraryWindow? _settings;
+    private ExportWindow? _export;
+
+    public void ShowExport()
+    {
+        if (_export is { IsLoaded: true })
+        {
+            _export.Activate();
+            return;
+        }
+        _export = new ExportWindow(_host!);
+        _export.Show();
+    }
 
     public void ShowSettings()
     {
@@ -116,6 +135,7 @@ public partial class App : Application
         var mute = new System.Windows.Forms.ToolStripMenuItem("Mute all") { CheckOnClick = true };
         mute.CheckedChanged += (_, _) => _host!.Alerts.Muted = mute.Checked;
         menu.Items.Add(mute);
+        menu.Items.Add("Export CSV…", null, (_, _) => ShowExport());
         menu.Items.Add("Settings", null, (_, _) => ShowSettings());
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) =>

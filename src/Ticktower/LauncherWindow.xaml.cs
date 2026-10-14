@@ -59,5 +59,7 @@ public partial class LauncherWindow : Window
 
     private void OnNewType(object sender, RoutedEventArgs e) => new TypeEditWindow(_host).ShowDialog();
 
+    private void OnExport(object sender, RoutedEventArgs e) => ((App)Application.Current).ShowExport();
+
     private void OnSettings(object sender, RoutedEventArgs e) => ((App)Application.Current).ShowSettings();
 }

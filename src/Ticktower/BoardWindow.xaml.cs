@@ -24,6 +24,7 @@ public partial class BoardWindow : Window
 
         ColourModeBox.ItemsSource = Enum.GetValues<ColourMode>();
         ColourModeBox.SelectedItem = host.Settings.ColourMode;
+        AlwaysOnTop.IsChecked = host.Settings.BoardAlwaysOnTop;
         host.CatalogChanged += Sync;
         host.Ticked += Sync;
         host.Engine.Changed += Sync;
@@ -37,7 +38,12 @@ public partial class BoardWindow : Window
         _host.SaveSettings();   // raises CatalogChanged, which re-syncs the cards
     }
 
-    private void OnAlwaysOnTop(object sender, RoutedEventArgs e) => Topmost = AlwaysOnTop.IsChecked == true;
+    private void OnAlwaysOnTop(object sender, RoutedEventArgs e)
+    {
+        Topmost = AlwaysOnTop.IsChecked == true;
+        _host.Settings.BoardAlwaysOnTop = Topmost;
+        _host.PersistSettings();
+    }
 
     private void Sync()
     {

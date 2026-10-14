@@ -137,7 +137,7 @@ public sealed class LibraryWindow : Window
     {
         _host = host;
         Title = "Ticktower settings";
-        Width = 520;
+        Width = 600;
         Height = 440;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
@@ -167,6 +167,12 @@ public sealed class LibraryWindow : Window
             Header = "Palettes",
             Content = new CatalogPanel<ColourPalette>("palettes", () => host.Palettes, host.SavePalettes,
                 p => new PaletteWindow(host, p).ShowDialog() == true),
+        });
+        tabs.Items.Add(new TabItem
+        {
+            Header = "Export profiles",
+            Content = new CatalogPanel<ExportProfile>("exportprofiles", () => host.ExportProfiles, host.SaveExportProfiles,
+                p => new ExportProfileWindow(host, p).ShowDialog() == true),
         });
         tabs.Items.Add(new TabItem { Header = "General", Content = BuildGeneral() });
         Content = tabs;
