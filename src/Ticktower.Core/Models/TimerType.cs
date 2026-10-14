@@ -1,6 +1,6 @@
 namespace Ticktower.Core.Models;
 
-public sealed class TimerType
+public sealed class TimerType : ICatalogItem
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
@@ -12,7 +12,9 @@ public sealed class TimerType
     public string? Hotkey { get; set; }
     public bool BuiltIn { get; set; }
 
-    /// <summary>Builds an unstarted timer from this type. The engine starts it on Add.</summary>
+    public override string ToString() => Name;
+
+    /// <summary>Builds an unstarted timer from this type. The engine starts it on Add. The type's own hotkey is not copied: it starts new timers, it does not belong to them.</summary>
     public TimerItem CreateTimer(string name = "", string ticket = "", string client = "",
         Priority? priority = null, string notes = "") => new()
     {
@@ -25,7 +27,6 @@ public sealed class TimerType
         Kind = Kind,
         Duration = Kind == TimerKind.Stopwatch ? TimeSpan.Zero : DefaultDuration,
         AlertProfileId = DefaultAlertProfileId,
-        Hotkey = Hotkey,
     };
 }
 
