@@ -64,5 +64,18 @@ public sealed class HistoryWriter
         return records;
     }
 
+    /// <summary>Records closed in [fromUtc, toUtc), oldest first, read from every month file the range touches.</summary>
+    public IReadOnlyList<HistoryRecord> ReadRange(DateTime fromUtc, DateTime toUtc)
+    {
+        var result = new List<HistoryRecord>();
+        if (toUtc <= fromUtc) return result;
+
+        var month = new DateTime(fromUtc.Year, fromUtc.Month, 1);
+        var last = new DateTime(toUtc.Year, toUtc.Month, 1);
+        for (; month <= last; month = month.AddMonths(1))
+            result.AddRange(ReadMonth(month.Year, month.Month).Where(r => r.ClosedUtc >= fromUtc && r.ClosedUtc < toUtc));
+        return result.OrderBy(r => r.ClosedUtc).ToList();
+    }
+
     private string PathFor(int year, int month) => Path.Combine(_historyDir, $"{year:D4}-{month:D2}.jsonl");
 }

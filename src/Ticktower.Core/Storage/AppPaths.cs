@@ -20,5 +20,6 @@ public sealed class AppPaths
     public string Presets => Path.Combine(Root, "presets.json");
     public string AlertProfiles => Path.Combine(Root, "alertprofiles.json");
     public string Palettes => Path.Combine(Root, "palettes.json");
+    public string ExportProfiles => Path.Combine(Root, "exportprofiles.json");
     public string Settings => Path.Combine(Root, "settings.json");
 }
