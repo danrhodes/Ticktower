@@ -25,7 +25,7 @@ public sealed class TimerEngineTests : IDisposable
     private sealed class RecordingSink : IAlertSink
     {
         public List<(string Name, bool Missed)> Fired { get; } = new();
-        public void Expired(TimerItem timer, bool missed) => Fired.Add((timer.Name, missed));
+        public void Alert(AlertNotice n) => Fired.Add((n.Timer.Name, n.Missed));
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class TimerEngineTests : IDisposable
         Assert.Equal(new[] { ("a", false) }, _sink.Fired);
         Assert.Equal(TimerEventType.AlertFired, a.Events.Last().Type);
 
-        _now = T0.AddMinutes(7);
+        _now = T0.AddMinutes(6).AddSeconds(30); // inside the first ladder interval: no repeat yet
         Assert.Empty(engine.Tick());
         Assert.Single(_sink.Fired);
     }

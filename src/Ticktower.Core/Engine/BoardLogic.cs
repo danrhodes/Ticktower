@@ -22,7 +22,7 @@ public static class BoardLogic
 {
     public static Lane LaneOf(TimerItem t) => t.State switch
     {
-        TimerState.Running or TimerState.Paused => Lane.Active,
+        TimerState.Running or TimerState.Paused or TimerState.Pending => Lane.Active,
         TimerState.Expired => Lane.Expired,
         _ => Lane.Acknowledged,
     };
@@ -52,7 +52,11 @@ public static class BoardLogic
         TimeSpan? remaining = null, overdue = null, elapsed = null;
         string text;
 
-        if (t.Kind == TimerKind.Stopwatch)
+        if (t.State == TimerState.Pending)
+        {
+            text = "Queued";
+        }
+        else if (t.Kind == TimerKind.Stopwatch)
         {
             elapsed = TimerStateMachine.Elapsed(t, nowUtc);
             text = FormatSpan(elapsed.Value);

@@ -11,6 +11,7 @@ public sealed class TimerItem
     public TimerKind Kind { get; set; }
     public string Notes { get; set; } = "";
     public string? AlertProfileId { get; set; }
+    public AlertOverride? AlertOverride { get; set; }
     public string? Hotkey { get; set; }
     public Guid? NextTimerId { get; set; }
 

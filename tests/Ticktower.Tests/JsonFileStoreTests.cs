@@ -56,7 +56,7 @@ public sealed class JsonFileStoreTests : IDisposable
     {
         new JsonFileStore().Save(P("state.json"), Sample());
         var text = File.ReadAllText(P("state.json"));
-        Assert.Contains("\"version\": 1", text);
+        Assert.Contains("\"version\": 2", text);
         Assert.Contains("\"Interval\"", text);
     }
 

@@ -19,7 +19,7 @@ public sealed class HistoryWriterTests : IDisposable
 
     private sealed class NullSink : IAlertSink
     {
-        public void Expired(TimerItem timer, bool missed) { }
+        public void Alert(AlertNotice n) { }
     }
 
     private static TimerItem Countdown(string name) =>
