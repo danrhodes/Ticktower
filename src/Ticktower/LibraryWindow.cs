@@ -131,6 +131,7 @@ public sealed class LibraryWindow : Window
 {
     private readonly AppHost _host;
     private readonly TextBox _snooze = new();
+    private readonly CheckBox _updates = new() { Content = "Check GitHub for a newer version on start and daily" };
     private readonly ComboBox _palette = new() { DisplayMemberPath = "Name" };
 
     public LibraryWindow(AppHost host)
@@ -202,6 +203,9 @@ public sealed class LibraryWindow : Window
         var form = new FormBuilder(140);
         form.Add("Snooze presets (min)", _snooze);
         form.Add("Board palette", _palette);
+        _updates.IsChecked = _host.Settings.CheckForUpdates;
+        _updates.ToolTip = "The only network use in Ticktower. It asks GitHub Releases for the latest version and sends nothing else.";
+        form.Add("Updates", _updates);
         var save = new Button { Content = "Save", Width = 80, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 12, 0, 0) };
         save.Click += (_, _) => SaveGeneral();
         form.AddFull(save);
@@ -232,6 +236,7 @@ public sealed class LibraryWindow : Window
         }
         _host.Settings.SnoozeMinutes = minutes;
         _host.Settings.PaletteId = (_palette.SelectedItem as ColourPalette)?.Id;
+        _host.Settings.CheckForUpdates = _updates.IsChecked == true;
         _host.SaveSettings();
     }
 }

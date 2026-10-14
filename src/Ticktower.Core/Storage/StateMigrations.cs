@@ -27,7 +27,15 @@ public sealed class SettingsV1ToV2 : IMigration
     public void Apply(JsonObject root) { }
 }
 
+/// <summary>settings.json v2 to v3: adds the update-check switch, last check time and skipped version (all optional).</summary>
+public sealed class SettingsV2ToV3 : IMigration
+{
+    public int FromVersion => 2;
+
+    public void Apply(JsonObject root) { }
+}
+
 public static class SettingsMigrations
 {
-    public static Migrator Create() => new(SettingsFile.CurrentVersion, new IMigration[] { new SettingsV1ToV2() });
+    public static Migrator Create() => new(SettingsFile.CurrentVersion, new IMigration[] { new SettingsV1ToV2(), new SettingsV2ToV3() });
 }

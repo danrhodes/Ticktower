@@ -7,13 +7,20 @@ public enum ColourMode { Urgency, Priority, Type, Client }
 /// <summary>Root of <c>settings.json</c>.</summary>
 public sealed class SettingsFile
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public int Version { get; set; } = CurrentVersion;
     public List<int> SnoozeMinutes { get; set; } = new() { 5, 10, 15, 30 };
     public ColourMode ColourMode { get; set; } = ColourMode.Urgency;
     public string? PaletteId { get; set; }
     public bool BoardAlwaysOnTop { get; set; }
+
+    /// <summary>Ask GitHub Releases for a newer version on start and then daily. The only network use in the app.</summary>
+    public bool CheckForUpdates { get; set; } = true;
+    public DateTime? LastUpdateCheckUtc { get; set; }
+
+    /// <summary>A release version the user chose to skip; it is not announced again.</summary>
+    public string? SkippedVersion { get; set; }
 
     /// <summary>Remembered position and size per window id, per monitor.</summary>
     public Dictionary<string, WindowMemory> Windows { get; set; } = new();

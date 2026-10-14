@@ -14,7 +14,7 @@ Ticktower is a single `.exe`. There is no installer and no admin rights are need
 2. Download `Ticktower-vX.Y.Z-win-x64.exe` from the [Releases](../../releases) page.
 3. Put it anywhere you like and run it.
 
-Each person runs their own copy. Nothing is shared between users, there is no telemetry, and the app makes no network calls.
+Each person runs their own copy. Nothing is shared between users, there is no telemetry, and the only network call is an optional update check against this repo's GitHub Releases (Settings > General turns it off).
 
 Your data lives in `%AppData%\Ticktower\`. Delete that folder to start again.
 

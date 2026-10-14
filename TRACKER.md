@@ -63,7 +63,8 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 
 ## P4: Later
 
-- [ ] P4-01 Auto-update
+- [x] P4-01 Auto-update (from GitHub Releases)
+- [ ] P4-02 Full Dark mode toggle
 
 ## Decisions log
 
@@ -111,6 +112,7 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-14 | `settings.json` bumped to version 2 (migration `SettingsV1ToV2`): per-window, per-monitor placement memory and board always-on-top. A window reopens on the monitor it was last on; if that monitor is gone it uses the primary's saved spot; the spot is clamped fully on-screen. Saved in WPF device-independent units on a 1 s debounce and when a window hides. Launcher restores position only (it sizes to content). |
 | 2026-10-14 | Release workflow tests and publishes `-r win-x64 --self-contained false -p:PublishSingleFile=true` (needs the .NET 8 Desktop Runtime, per the guide's command), builds named projects not the `.slnx` (SDK 8 cannot open it), and attaches the exe with `gh release create`. Unrun until the first `v*` tag is pushed. |
 | 2026-10-14 | Separate `TICKTOWER_DATA` folders get their own single-instance name, so a sandbox can run beside the real app. Type and palette colour swatches open the Windows colour dialog. |
+| 2026-10-14 | Auto-update (P4-01) pulls from GitHub Releases `releases/latest` of `danrhodes/Ticktower`: the first `Ticktower*.exe` asset over https, newest non-draft non-prerelease. Checks on start and then daily; switch in Settings > General; tray "Check for updates…". Install renames the running exe to `.old`, moves the download in, and relaunches with `--updated-from <pid>` so the new copy waits for the old one to exit. Download is checked for an MZ header and the SHA-256 digest GitHub publishes. Copies that are not a Ticktower exe (dotnet run) only open the release page. `settings.json` v3 adds `CheckForUpdates`, `LastUpdateCheckUtc`, `SkippedVersion`. |
 
 ## Blockers and open questions
 
@@ -134,3 +136,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-14 | Build | P1-09 to P1-16 | Core: `SingleInstance`, `TimerType`/`BuiltInTypes`, `BoardLogic`, `AppPaths`, `TimerEngine.Edit`. App: `AppHost`, `AlertService`, launcher, entry window, board, tray. 81 tests passing, 0 warnings. Smoke run: relaunch recomputes an expired timer with a `missed` alert, second launch exits. **Not verified:** UI appearance, toast delivery, locked-screen alerts, sleep/wake. See P1 exit test. |
 | 2026-10-14 | Build | P2-01 to P2-14 | Core: alert profiles, ladder, override, chain/Pending, colours, palettes, hotkeys, catalog import/export, presets, settings, state v2 migration. App: channels (toast, sound, flash, overlay, TTS), editors, settings window, hotkey service, AUMID. 145 tests passing, 0 warnings. Smoke runs: ladder repeated every 2 s with `repeat N` notes; a real global hotkey created a timer; AUMID key written with toast activator. **Not verified:** how the new windows look, audible sound/TTS, overlay appearance and locked screen, toast on a clean profile. |
 | 2026-10-14 | Build | P3-01 to P3-10 | Core: export profiles, `CsvExporter`, `HistoryWriter.ReadRange`, window memory, settings v2. App: export window, profile editor (Settings tab, import/export), `WindowPlacer`, tray and launcher export entries. Workflow `release.yml` and README with screenshots. 180 tests passing, 0 warnings. Verified by running: all windows render (screenshots in `docs/screenshots`), board position and size restore after relaunch, single-file publish starts. **Not verified:** a second monitor, the release workflow itself (needs a tag), opening an exported CSV in Excel/PSA. |
+| 2026-10-14 | Build | P4-01 | Core `UpdateChecker`, `ReleaseVersion`; app `UpdateService`, tray and settings wiring, settings v3. 201 tests passing, 0 warnings. **Not verified:** a real update (needs two tagged releases). |

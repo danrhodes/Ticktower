@@ -12,11 +12,14 @@ public partial class App : Application
     private BoardWindow? _board;
     private System.Windows.Forms.NotifyIcon? _tray;
     private bool _exiting;
+    private UpdateService? _updates;
+    private System.Windows.Forms.ToolStripMenuItem? _updateItem;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        UpdateService.WaitForPredecessor(e.Args);
 
         // A TICKTOWER_DATA override is a separate sandbox, so it gets its own instance name and can run beside the real app.
         var dataOverride = Environment.GetEnvironmentVariable("TICKTOWER_DATA");
@@ -46,6 +49,10 @@ public partial class App : Application
         KeepAliveInTray(_board);
         BuildTray();
         _host.Alerts.FlashTaskbar = FlashBoard;
+
+        _updates = new UpdateService(_host);
+        _updates.Found += OnUpdateFound;
+        _updates.Start();
 
         ShowLauncher();
         if (_host.Engine.Timers.Count > 0) ShowBoard();
@@ -86,6 +93,55 @@ public partial class App : Application
         }
         _settings = new LibraryWindow(_host!);
         _settings.Show();
+    }
+
+    private void OnUpdateFound(Core.Update.UpdateInfo update)
+    {
+        _updateItem!.Text = $"Update to {update.Tag}…";
+        _updateItem.Visible = true;
+        if (_host!.Settings.SkippedVersion == update.Tag) return;
+        _tray?.ShowBalloonTip(8000, "Ticktower update", $"{update.Tag} is available. Use the tray menu to install it.",
+            System.Windows.Forms.ToolTipIcon.Info);
+    }
+
+    private async Task CheckForUpdatesManually()
+    {
+        var (update, error) = await _updates!.CheckAsync(manual: true);
+        if (error is not null) MessageBox.Show(error, "Ticktower", MessageBoxButton.OK, MessageBoxImage.Warning);
+        else if (update is null) MessageBox.Show($"Ticktower {_updates.Current.ToString(3)} is the latest version.", "Ticktower");
+        else await OfferUpdate(update);
+    }
+
+    private async Task OfferUpdate(Core.Update.UpdateInfo update)
+    {
+        var canInstall = UpdateService.SelfPath is not null;
+        var text = $"Ticktower {update.Tag} is available (you have {_updates!.Current.ToString(3)}).\n\n" +
+            (canInstall
+                ? "Yes: download and install now. Ticktower restarts and your timers carry on.\nNo: remind me later.\nCancel: skip this version."
+                : "This copy cannot update itself. Yes opens the release page.\nNo: remind me later.\nCancel: skip this version.");
+        var answer = MessageBox.Show(text, "Ticktower update", MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
+        if (answer == MessageBoxResult.Cancel)
+        {
+            _updates.Skip(update);
+            _updateItem!.Visible = false;
+            return;
+        }
+        if (answer != MessageBoxResult.Yes) return;
+
+        if (!canInstall)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(update.PageUrl) { UseShellExecute = true });
+            return;
+        }
+        var error = await _updates.InstallAsync(update);
+        if (error is not null)
+        {
+            MessageBox.Show(error, "Ticktower", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        _exiting = true;
+        _tray!.Visible = false;
+        Shutdown();
     }
 
     /// <summary>Flashes the board's taskbar button. A hidden board is shown without taking focus so it has a button to flash.</summary>
@@ -137,6 +193,10 @@ public partial class App : Application
         menu.Items.Add(mute);
         menu.Items.Add("Export CSV…", null, (_, _) => ShowExport());
         menu.Items.Add("Settings", null, (_, _) => ShowSettings());
+        menu.Items.Add("Check for updates…", null, async (_, _) => await CheckForUpdatesManually());
+        _updateItem = new System.Windows.Forms.ToolStripMenuItem("Update available") { Visible = false };
+        _updateItem.Click += async (_, _) => { if (_updates?.Available is { } u) await OfferUpdate(u); };
+        menu.Items.Add(_updateItem);
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) =>
         {
