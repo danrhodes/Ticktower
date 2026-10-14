@@ -5,8 +5,14 @@ public sealed class AppPaths
 {
     public AppPaths(string root) => Root = root;
 
-    public static AppPaths Default() => new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Ticktower"));
+    /// <summary><c>%AppData%\Ticktower</c>, or the folder in <c>TICKTOWER_DATA</c> when set (for sandboxed runs).</summary>
+    public static AppPaths Default()
+    {
+        var overrideDir = Environment.GetEnvironmentVariable("TICKTOWER_DATA");
+        return new(!string.IsNullOrWhiteSpace(overrideDir)
+            ? overrideDir
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Ticktower"));
+    }
 
     public string Root { get; }
     public string State => Path.Combine(Root, "state.json");

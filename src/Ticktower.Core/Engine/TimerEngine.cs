@@ -79,6 +79,9 @@ public sealed class TimerEngine
 
     public void Lap(Guid id) => Act(id, (t, now) => TimerStateMachine.Lap(t, now));
 
+    /// <summary>Applies descriptive edits (name, ticket, client, priority, notes) and raises <see cref="Changed"/>.</summary>
+    public void Edit(Guid id, Action<TimerItem> edit) => Act(id, (t, _) => edit(t));
+
     public void Bookmark(Guid id, string? note = null) => Act(id, (t, now) => TimerStateMachine.Bookmark(t, now, note));
 
     private List<TimerItem> Sweep(bool missed)

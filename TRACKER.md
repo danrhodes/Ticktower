@@ -3,7 +3,7 @@
 Update at the end of every session. Spec lives in `GUIDE.md`.
 
 **Current phase:** P1
-**Next task:** P1-09
+**Next task:** P1 exit test (manual)
 **Last updated:** 2026-10-14
 
 ## Status key
@@ -20,14 +20,14 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 - [x] P1-06 Engine: UTC recompute on launch, missed-alert firing, tick loop (UI refresh only)
 - [x] P1-07 Event log: start, stop, pause, resume, lap, bookmark, snooze, expire, ack, alert-fired
 - [x] P1-08 History writer: `history/YYYY-MM.jsonl` on timer close
-- [ ] P1-09 Single-instance mutex, focus running instance
-- [ ] P1-10 Launcher window: floating, always-on-top, button per type
-- [ ] P1-11 Entry window: name, ticket, client, priority, type, notes
-- [ ] P1-12 Board: lanes Active, Expired, Acknowledged; sort rules; card actions
-- [ ] P1-13 Card display: remaining or elapsed, laps, bookmarks, time since last client update
-- [ ] P1-14 Tray icon and menu, minimise to tray
-- [ ] P1-15 Basic alert path: toast and sound on expire, ack, snooze (locked-screen test)
-- [ ] P1-16 Built-in types and intervals: 5, 10, 15, 30, 60 min
+- [x] P1-09 Single-instance mutex, focus running instance
+- [x] P1-10 Launcher window: floating, always-on-top, button per type
+- [x] P1-11 Entry window: name, ticket, client, priority, type, notes
+- [x] P1-12 Board: lanes Active, Expired, Acknowledged; sort rules; card actions
+- [x] P1-13 Card display: remaining or elapsed, laps, bookmarks, time since last client update
+- [x] P1-14 Tray icon and menu, minimise to tray
+- [x] P1-15 Basic alert path: toast and sound on expire, ack, snooze (locked-screen test)
+- [x] P1-16 Built-in types and intervals: 5, 10, 15, 30, 60 min
 
 **P1 exit test:** start 3 timers, sleep the PC for 5 min, wake, confirm correct expiry and alerts. Kill the app mid-run, relaunch, confirm state restored.
 
@@ -85,6 +85,13 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | Engine takes an `IAlertSink` and an injectable UTC clock, and raises `Changed` for persistence. `Recompute` (launch) and `Tick` share one sweep; alert-fired notes are `missed` or `expired`. Re-alerting an unacknowledged expired timer after relaunch is left to the P2 ladder. |
 | 2026-10-13 | Only .NET SDK 10 installed (runtime 8 present). Projects target net8.0 / net8.0-windows, built with SDK 10. LICENSE and README already existed. |
 | 2026-10-14 | "Closed" means removed from the live set (`TimerEngine.Remove`), which raises `Closed(timer, utc)`. `HistoryWriter` appends a versioned `HistoryRecord` line to `history/YYYY-MM.jsonl`, filed by the UTC close month. Wiring Closed to the writer happens at app startup (UI tasks). Corrupt lines are skipped on read. |
+| 2026-10-14 | User asked for P1-09 to P1-16 in one session, overriding the one-task-per-session protocol. Committed per task or slice. |
+| 2026-10-14 | `Closed` means removed from the live set (`TimerEngine.Remove`). `HistoryWriter` appends a versioned `HistoryRecord` per line to `history/YYYY-MM.jsonl`, filed by UTC close month. |
+| 2026-10-14 | Built-in types are the five intervals plus a 15 min Countdown and a Stopwatch, so every kind has a launcher button. |
+| 2026-10-14 | Board lane and sort rules, card text and "last client update" (since last ack, else start; intervals only) live in Core `BoardLogic`. WPF code only binds. |
+| 2026-10-14 | P1 snooze is a fixed 5 min button and toast action. Presets and custom durations stay in P2-06. Launcher right-click type edit is deferred to P2-08. Tray "settings" item omitted until a settings window exists. |
+| 2026-10-14 | P1 alerts: toast (Microsoft.Toolkit.Uwp.Notifications, buttons Acknowledge and Snooze) plus system sound; failures are swallowed. App targets net8.0-windows10.0.17763.0 and enables WinForms for `NotifyIcon` only. AUMID registration stays P2-07. |
+| 2026-10-14 | Added `TICKTOWER_DATA` env var to override the data folder, for sandboxed runs and tests. |
 
 ## Blockers and open questions
 
@@ -105,3 +112,4 @@ Update at the end of every session. Spec lives in `GUIDE.md`.
 | 2026-10-13 | Build | P1-04, P1-05 | `JsonFileStore` (temp write, atomic replace, `.bad` recovery) and `Migrator` in Core. 45 tests passing, 0 warnings. |
 | 2026-10-13 | Build | P1-06, P1-07 | `TimerEngine` and `IAlertSink` in Core. Event logging itself was built in P1-03; P1-07 added lifecycle-order and JSON round-trip tests for all 10 event types, plus engine-written alert-fired events. 62 tests passing, 0 warnings. |
 | 2026-10-14 | Build | P1-08 | `HistoryWriter`, `HistoryRecord`, `TimerEngine.Closed`. 68 tests passing, 0 warnings. Pre-existing uncommitted changes (Tests csproj package versions, `TicktowerCoreTests.cs`) left untouched. |
+| 2026-10-14 | Build | P1-09 to P1-16 | Core: `SingleInstance`, `TimerType`/`BuiltInTypes`, `BoardLogic`, `AppPaths`, `TimerEngine.Edit`. App: `AppHost`, `AlertService`, launcher, entry window, board, tray. 81 tests passing, 0 warnings. Smoke run: relaunch recomputes an expired timer with a `missed` alert, second launch exits. **Not verified:** UI appearance, toast delivery, locked-screen alerts, sleep/wake. See P1 exit test. |

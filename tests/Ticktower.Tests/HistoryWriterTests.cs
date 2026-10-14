@@ -106,6 +106,21 @@ public sealed class HistoryWriterTests : IDisposable
     }
 
     [Fact]
+    public void Engine_Edit_applies_the_change_and_raises_Changed()
+    {
+        var engine = new TimerEngine(new NullSink(), () => _now);
+        var t = engine.Add(Countdown("a"));
+        var changed = 0;
+        engine.Changed += () => changed++;
+
+        engine.Edit(t.Id, x => x.Ticket = "INC9");
+
+        Assert.Equal("INC9", t.Ticket);
+        Assert.Equal(1, changed);
+        Assert.Throws<KeyNotFoundException>(() => engine.Edit(Guid.NewGuid(), _ => { }));
+    }
+
+    [Fact]
     public void Engine_Remove_of_unknown_id_does_not_raise_Closed()
     {
         var engine = new TimerEngine(new NullSink(), () => _now);
