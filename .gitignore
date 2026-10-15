@@ -16,3 +16,5 @@
 *.exe
 *.dll
 *.nupkg
+TRACKER.md
+GUIDE.md
