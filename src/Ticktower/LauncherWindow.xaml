@@ -19,7 +19,7 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <TextBlock x:Name="PresetLabel" Text="Presets" Foreground="Gray" Margin="4,6,0,0" />
+        <TextBlock x:Name="PresetLabel" Text="Presets" Foreground="{DynamicResource MutedText}" Margin="4,6,0,0" />
         <ItemsControl x:Name="PresetButtons">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -38,6 +38,6 @@
             <Button Content="Export…" Margin="3" Padding="8,3" Click="OnExport" ToolTip="Export closed timers to CSV" />
             <Button Content="Settings…" Margin="3" Padding="8,3" Click="OnSettings" />
         </StackPanel>
-        <TextBlock x:Name="Status" Foreground="#B00020" TextWrapping="Wrap" Margin="4,2,4,0" />
+        <TextBlock x:Name="Status" Foreground="{DynamicResource ErrorText}" TextWrapping="Wrap" Margin="4,2,4,0" />
     </StackPanel>
 </Window>

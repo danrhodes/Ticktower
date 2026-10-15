@@ -39,6 +39,7 @@ public partial class App : Application
 
         _host = new AppHost();
         _host.Start();
+        ThemeManager.Apply(_host.Settings.Theme);
 
         _launcher = new LauncherWindow(_host);
         _board = new BoardWindow(_host);

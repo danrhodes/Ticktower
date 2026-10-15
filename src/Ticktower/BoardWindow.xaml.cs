@@ -24,6 +24,8 @@ public partial class BoardWindow : Window
 
         ColourModeBox.ItemsSource = Enum.GetValues<ColourMode>();
         ColourModeBox.SelectedItem = host.Settings.ColourMode;
+        ThemeBox.ItemsSource = Enum.GetValues<ThemeMode>();
+        ThemeBox.SelectedItem = host.Settings.Theme;
         AlwaysOnTop.IsChecked = host.Settings.BoardAlwaysOnTop;
         host.CatalogChanged += Sync;
         host.Ticked += Sync;
@@ -36,6 +38,14 @@ public partial class BoardWindow : Window
         if (ColourModeBox.SelectedItem is not ColourMode mode || mode == _host.Settings.ColourMode) return;
         _host.Settings.ColourMode = mode;
         _host.SaveSettings();   // raises CatalogChanged, which re-syncs the cards
+    }
+
+    private void OnThemeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ThemeBox.SelectedItem is not ThemeMode mode || mode == _host.Settings.Theme) return;
+        _host.Settings.Theme = mode;
+        _host.PersistSettings();
+        ThemeManager.Apply(mode);
     }
 
     private void OnAlwaysOnTop(object sender, RoutedEventArgs e)

@@ -35,7 +35,15 @@ public sealed class SettingsV2ToV3 : IMigration
     public void Apply(JsonObject root) { }
 }
 
+/// <summary>settings.json v3 to v4: adds the appearance choice; a missing value means follow Windows.</summary>
+public sealed class SettingsV3ToV4 : IMigration
+{
+    public int FromVersion => 3;
+
+    public void Apply(JsonObject root) { }
+}
+
 public static class SettingsMigrations
 {
-    public static Migrator Create() => new(SettingsFile.CurrentVersion, new IMigration[] { new SettingsV1ToV2(), new SettingsV2ToV3() });
+    public static Migrator Create() => new(SettingsFile.CurrentVersion, new IMigration[] { new SettingsV1ToV2(), new SettingsV2ToV3(), new SettingsV3ToV4() });
 }

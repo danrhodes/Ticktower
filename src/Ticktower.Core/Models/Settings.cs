@@ -4,16 +4,20 @@ namespace Ticktower.Core.Models;
 
 public enum ColourMode { Urgency, Priority, Type, Client }
 
+/// <summary>App appearance. System follows the Windows "app mode" setting.</summary>
+public enum ThemeMode { System, Light, Dark }
+
 /// <summary>Root of <c>settings.json</c>.</summary>
 public sealed class SettingsFile
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public int Version { get; set; } = CurrentVersion;
     public List<int> SnoozeMinutes { get; set; } = new() { 5, 10, 15, 30 };
     public ColourMode ColourMode { get; set; } = ColourMode.Urgency;
     public string? PaletteId { get; set; }
     public bool BoardAlwaysOnTop { get; set; }
+    public ThemeMode Theme { get; set; } = ThemeMode.System;
 
     /// <summary>Ask GitHub Releases for a newer version on start and then daily. The only network use in the app.</summary>
     public bool CheckForUpdates { get; set; } = true;
