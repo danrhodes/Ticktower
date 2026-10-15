@@ -79,7 +79,7 @@ dotnet publish src/Ticktower -c Release -r win-x64 --self-contained false -p:Pub
 
 Set `TICKTOWER_DATA` to a folder to run a sandboxed copy with its own data, beside your real one.
 
-Pushing a tag such as `v0.2.0` runs the GitHub Actions workflow in `.github/workflows/release.yml`, which tests, publishes the single-file exe and attaches it to a GitHub release.
+The GitHub Actions workflow in `.github/workflows/release.yml` tests, publishes the single-file exe, attests it (build provenance) and attaches it to a GitHub release. A push to `main` makes a pre-release; run the workflow manually (Actions > Build and Release > Run workflow) and pick patch, minor or major to tag and publish a full release. Check a download with `gh attestation verify <exe> --repo danrhodes/Ticktower`.
 
 ## Project layout
 

@@ -1,19 +1,43 @@
-name: Release
+name: Build and Release
 
-# Push a tag such as v0.2.0 to build, test and publish a GitHub release.
+# Push to main  -> pre-release (the in-app updater ignores pre-releases).
+# Manual run    -> full release: pick patch / minor / major, the workflow tags the next version.
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -23,19 +47,86 @@ jobs:
       - name: Test
         run: dotnet test tests/Ticktower.Tests -c Release
 
-      - name: Publish single-file exe
-        shell: pwsh
+      # The version lives in git tags only. Latest full release = newest vX.Y.Z tag (no suffix).
+      - name: Work out version
+        id: v
         run: |
-          $version = "${{ github.ref_name }}".TrimStart('v')
+          git fetch --tags --force
+          $last = git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' } |
+              Sort-Object { [version]$_.TrimStart('v') } | Select-Object -Last 1
+          $cur = if ($last) { [version]$last.TrimStart('v') } else { [version]'0.0.0' }
+
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            switch ('${{ github.event.inputs.release_type }}') {
+              'major' { $next = "$($cur.Major + 1).0.0" }
+              'minor' { $next = "$($cur.Major).$($cur.Minor + 1).0" }
+              'patch' { $next = "$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
+            }
+            $full = 'true'
+          } else {
+            # Count existing pre-release tags, including ones whose releases were deleted.
+            $base = "$($cur.Major).$($cur.Minor).$($cur.Build)"
+            $count = @(git tag -l "v$base-pre-release.*").Count
+            $sha = '${{ github.sha }}'.Substring(0, 7)
+            $next = "$base-pre-release.$($count + 1)-$sha"
+            $full = 'false'
+          }
+          "version=$next" >> $env:GITHUB_OUTPUT
+          "tag=v$next" >> $env:GITHUB_OUTPUT
+          "full=$full" >> $env:GITHUB_OUTPUT
+          "last=$last" >> $env:GITHUB_OUTPUT
+          Write-Host "Previous full release: '$last'  ->  new: v$next"
+
+      - name: Generate changelog
+        run: |
+          # Full releases list everything since the previous full release; pre-releases since the previous tag.
+          $since = if ('${{ steps.v.outputs.full }}' -eq 'true') { '${{ steps.v.outputs.last }}' }
+                   else { git describe --tags --abbrev=0 2>$null }
+          $range = if ($since) { "$since..HEAD" } else { 'HEAD' }
+          $commits = git log --pretty=format:"- %s (%h)" $range
+          $notes = @("### Changes")
+          if ($commits) { $notes += $commits } else { $notes += "- No changes" }
+          $notes | Set-Content changelog.txt -Encoding utf8
+
+      - name: Publish single-file exe
+        run: |
           dotnet publish src/Ticktower -c Release -r win-x64 --self-contained false `
-            -p:PublishSingleFile=true -p:Version=$version -o publish
-          Move-Item publish/Ticktower.exe "publish/Ticktower-${{ github.ref_name }}-win-x64.exe"
+            -p:PublishSingleFile=true -p:Version=${{ steps.v.outputs.version }} -o publish
+          Move-Item publish/Ticktower.exe "publish/Ticktower-${{ steps.v.outputs.tag }}-win-x64.exe"
+
+      # Signs the exe with a GitHub build-provenance attestation. Check with:
+      #   gh attestation verify <exe> --repo danrhodes/Ticktower
+      - name: Attest release asset
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: publish/Ticktower-${{ steps.v.outputs.tag }}-win-x64.exe
 
       - name: Create release
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "${{ github.ref_name }}" `
-            "publish/Ticktower-${{ github.ref_name }}-win-x64.exe" `
-            --title "Ticktower ${{ github.ref_name }}" --generate-notes
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: publish/Ticktower-${{ steps.v.outputs.tag }}-win-x64.exe
+          tag: ${{ steps.v.outputs.tag }}
+          commit: ${{ github.sha }}
+          name: Ticktower ${{ steps.v.outputs.tag }}
+          bodyFile: changelog.txt
+          prerelease: ${{ steps.v.outputs.full != 'true' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old pre-releases (keep 25)
+        if: steps.v.outputs.full != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner, repo: context.repo.repo, per_page: 100
+            });
+            const old = releases
+              .filter(r => r.prerelease && r.tag_name.includes('-pre-release.'))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(25);
+            for (const r of old) {
+              await github.rest.repos.deleteRelease({ owner: context.repo.owner, repo: context.repo.repo, release_id: r.id });
+              try {
+                await github.rest.git.deleteRef({ owner: context.repo.owner, repo: context.repo.repo, ref: `tags/${r.tag_name}` });
+              } catch (e) { console.log(`Could not delete tag ${r.tag_name}: ${e.message}`); }
+            }
