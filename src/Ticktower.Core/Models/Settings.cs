@@ -19,6 +19,9 @@ public sealed class SettingsFile
     public bool BoardAlwaysOnTop { get; set; }
     public ThemeMode Theme { get; set; } = ThemeMode.System;
 
+    public TimeSpan PomodoroWork { get; set; } = TimeSpan.FromMinutes(25);
+    public TimeSpan PomodoroRest { get; set; } = TimeSpan.FromMinutes(5);
+
     /// <summary>Ask GitHub Releases for a newer version on start and then daily. The only network use in the app.</summary>
     public bool CheckForUpdates { get; set; } = true;
     public DateTime? LastUpdateCheckUtc { get; set; }

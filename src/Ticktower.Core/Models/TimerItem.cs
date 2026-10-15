@@ -15,6 +15,11 @@ public sealed class TimerItem
     public string? Hotkey { get; set; }
     public Guid? NextTimerId { get; set; }
 
+    /// <summary>When set, completing this timer starts a fresh countdown with these details, which cycles back to this one (Pomodoro work/rest).</summary>
+    public string? CycleName { get; set; }
+    public string? CycleTypeId { get; set; }
+    public TimeSpan? CycleDuration { get; set; }
+
     /// <summary>Length of a countdown or interval. Unused for stopwatches.</summary>
     public TimeSpan Duration { get; set; }
 

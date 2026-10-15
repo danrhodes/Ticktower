@@ -128,6 +128,18 @@ public sealed class AppHost
         return Engine.AddChain(timer, next);
     }
 
+    /// <summary>Starts a Pomodoro: work then rest (lengths from settings), alternating until the timers are removed.</summary>
+    public TimerItem StartPomodoro() => Engine.Add(new TimerItem
+    {
+        Name = "Pomodoro: Work",
+        TypeId = "pomodoro-work",
+        Kind = TimerKind.Countdown,
+        Duration = Settings.PomodoroWork,
+        CycleName = "Pomodoro: Rest",
+        CycleTypeId = "pomodoro-rest",
+        CycleDuration = Settings.PomodoroRest,
+    });
+
     public string? RegisterHotkey(string ownerId, string? text)
     {
         var error = Hotkeys?.Register(ownerId, text);

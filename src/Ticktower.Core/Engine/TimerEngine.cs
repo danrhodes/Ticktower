@@ -138,6 +138,24 @@ public sealed class TimerEngine
     /// <summary>Chain rule: when A completes (acknowledged, or stopped for a stopwatch), a pending B starts.</summary>
     private void StartChained(TimerItem completed, DateTime now)
     {
+        if (completed.CycleName is not null && completed.CycleDuration is { } length)
+        {
+            var fresh = new TimerItem
+            {
+                Name = completed.CycleName,
+                TypeId = completed.CycleTypeId,
+                Kind = TimerKind.Countdown,
+                Duration = length,
+                Priority = completed.Priority,
+                AlertProfileId = completed.AlertProfileId,
+                CycleName = completed.Name,
+                CycleTypeId = completed.TypeId,
+                CycleDuration = completed.Duration,
+            };
+            TimerStateMachine.Start(fresh, now);
+            _timers.Add(fresh);
+            return;
+        }
         if (completed.NextTimerId is not { } nextId) return;
         var next = _timers.FirstOrDefault(t => t.Id == nextId);
         if (next is { State: TimerState.Pending })

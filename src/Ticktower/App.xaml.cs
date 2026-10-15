@@ -208,11 +208,16 @@ public partial class App : Application
 
         _tray = new System.Windows.Forms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = LoadTrayIcon(),
             Text = "Ticktower",
             ContextMenuStrip = menu,
             Visible = true,
         };
         _tray.DoubleClick += (_, _) => ShowBoard();
     }
+
+    private static System.Drawing.Icon LoadTrayIcon() =>
+        Environment.ProcessPath is { } exe && System.Drawing.Icon.ExtractAssociatedIcon(exe) is { } icon
+            ? icon
+            : System.Drawing.SystemIcons.Application;
 }
