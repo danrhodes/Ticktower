@@ -94,7 +94,47 @@ jobs:
             -p:PublishSingleFile=true -p:Version=${{ steps.v.outputs.version }} -o publish
           Move-Item publish/Ticktower.exe "publish/Ticktower-${{ steps.v.outputs.tag }}-win-x64.exe"
 
-      # Signs the exe with a GitHub build-provenance attestation. Check with:
+      # Authenticode signing (Certum SimplySign via ssign) runs on full releases only.
+      # Without the CERTUM_* secrets a full release still ships, unsigned.
+      - name: Check signing is configured
+        id: sign
+        env:
+          CERTUM_EMAIL: ${{ secrets.CERTUM_EMAIL }}
+          CERTUM_OTP: ${{ secrets.CERTUM_OTP }}
+        run: |
+          $full = '${{ steps.v.outputs.full }}' -eq 'true'
+          $ready = [bool]$env:CERTUM_EMAIL -and [bool]$env:CERTUM_OTP
+          if ($full -and -not $ready) { Write-Warning 'CERTUM_EMAIL / CERTUM_OTP not set - shipping unsigned.' }
+          "enabled=$($full -and $ready)".ToLower() >> $env:GITHUB_OUTPUT
+
+      - name: Sign with Certum SimplySign
+        if: steps.sign.outputs.enabled == 'true'
+        env:
+          CERTUM_EMAIL: ${{ secrets.CERTUM_EMAIL }}
+          CERTUM_OTP: ${{ secrets.CERTUM_OTP }}
+        run: |
+          $ver = 'v0.1.8'
+          $sha = '89cbac647d19819a1a82645d2254ac51d2b34050835421294584385dadde1298'
+          Invoke-WebRequest "https://github.com/Le-Syl21/ssign/releases/download/$ver/ssign-windows-x86_64.zip" -OutFile ssign.zip
+          if ((Get-FileHash ssign.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sha) { throw 'ssign checksum mismatch.' }
+          Expand-Archive ssign.zip -DestinationPath ssign-bin
+          $exes = Get-ChildItem publish -Filter *.exe
+          if (-not $exes) { throw 'No exes to sign.' }
+          & ssign-bin/ssign.exe ($exes.FullName)
+          if ($LASTEXITCODE -ne 0) { throw "ssign failed ($LASTEXITCODE)." }
+
+      - name: Verify signatures
+        if: steps.sign.outputs.enabled == 'true'
+        run: |
+          $bad = @()
+          Get-ChildItem publish -Filter *.exe | ForEach-Object {
+            $sig = Get-AuthenticodeSignature $_.FullName
+            Write-Host "$($_.Name): $($sig.Status)"
+            if ($sig.Status -ne 'Valid' -or -not $sig.TimeStamperCertificate) { $bad += $_.Name }
+          }
+          if ($bad) { throw "Signature check failed for: $($bad -join ', ')" }
+
+      # Also attests the (signed) exe with a GitHub build-provenance attestation. Check with:
       #   gh attestation verify <exe> --repo danrhodes/Ticktower
       - name: Attest release asset
         uses: actions/attest-build-provenance@v3
